@@ -117,7 +117,7 @@ const HomeScreen = ({navigation}) => {
       </View>
       <View style={styles.buttonGroup}>
         <TouchableOpacity onPress={handleChoosePicture}>
-          <SVG_PICTURE></SVG_PICTURE>
+          <SVG_PICTURE style={styles.scanIcon}></SVG_PICTURE>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleScan}>
           <SVG_ROUNDED_SCAN style={styles.scanIcon}></SVG_ROUNDED_SCAN>
