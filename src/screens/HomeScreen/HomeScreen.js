@@ -1,10 +1,10 @@
-import React, {useEffect, useRef} from 'react';
-import {PermissionsAndroid, Text, TouchableOpacity, View} from 'react-native';
-import DocumentPicker, {isInProgress} from 'react-native-document-picker';
+import React, { useEffect, useRef } from 'react';
+import { PermissionsAndroid, Text, TouchableOpacity, View } from 'react-native';
+import DocumentPicker, { isInProgress } from 'react-native-document-picker';
 
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import {SVG_PENCIL, SVG_PICTURE, SVG_ROUNDED_SCAN} from '../../assets/images';
+import { SVG_PENCIL, SVG_PICTURE, SVG_ROUNDED_SCAN } from '../../assets/images';
 
 import AlgorithmChoosing from '../../components/AlgorithmChoosing/AlgorithmChoosing';
 import SCREEN_NAMES from '../../constants/screens';
@@ -14,23 +14,24 @@ import {
   fetchResults,
 } from '../../features/prediction/predictionSlice';
 
-import {Camera, useCameraDevices} from 'react-native-vision-camera';
+import { Camera, getCameraDevice, useCameraDevices } from 'react-native-vision-camera';
 
-import {algorithmTypeSelector} from '../../features/algorithm/algorithmSlice';
+import { algorithmTypeSelector } from '../../features/algorithm/algorithmSlice';
 import styles from './HomeScreenStyles';
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
-  const camera = useRef(null);
-
-  const devices = useCameraDevices();
-  const device = devices.back;
-
+  const cameraRef = useRef(null);
+  console.log({ cameraRef });
+  const devices = Camera.getAvailableCameraDevices();
+  const device = getCameraDevice(devices, 'back');
+  console.log("device:",JSON.stringify(device, (k, v) => k === "formats" ? [] : v, 2))
   const algorithmType = useSelector(algorithmTypeSelector);
 
   useEffect(() => {
     (async () => {
+
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
@@ -43,7 +44,7 @@ const HomeScreen = ({navigation}) => {
           buttonPositive: 'OK',
         },
       );
-      console.log({granted});
+      console.log({ granted });
     })();
   }, []);
 
@@ -67,31 +68,40 @@ const HomeScreen = ({navigation}) => {
         copyTo: 'cachesDirectory',
       });
 
-      console.log({pickerResult});
-      const data = {data: pickerResult, type: algorithmType};
+      console.log({ pickerResult });
+      const data = { data: pickerResult, type: algorithmType };
       dispatch(fetchResults(data));
 
       dispatch(changeFile(pickerResult.fileCopyUri));
 
-      navigation.navigate(SCREEN_NAMES.PREDICTION_SCREEN, { imageURI: pickerResult.fileCopyUri });
+      navigation.navigate(SCREEN_NAMES.PREDICTION_SCREEN, {
+        imageURI: pickerResult.fileCopyUri,
+      });
     } catch (error) {
       handlePickingFileError(error);
     }
   };
 
   const handleScan = async () => {
-    const picture = await camera.current.takePhoto();
-    const data = {
-      fileName: 'upload.jpg',
-      name: 'upload.jpg',
-      type: 'image/jpeg',
-      uri: `file://${picture.path}`,
-    };
-    console.log({picture, data});
-    const imageURI = 'file://' + picture.path;
-    dispatch(fetchResults({data, type: 'none'}));
-    dispatch(changeFile(imageURI));
-    navigation.navigate(SCREEN_NAMES.PREDICTION_SCREEN, { imageURI: imageURI });
+    try {
+      if (cameraRef.current == null) throw new Error('Camera ref is null!');
+      const picture = await cameraRef.current.takePhoto();
+      const data = {
+        fileName: 'upload.jpg',
+        name: 'upload.jpg',
+        type: 'image/jpeg',
+        uri: `file://${picture.path}`,
+      };
+      console.log({ picture, data });
+      const imageURI = 'file://' + picture.path;
+      dispatch(fetchResults({ data, type: 'none' }));
+      dispatch(changeFile(imageURI));
+      navigation.navigate(SCREEN_NAMES.PREDICTION_SCREEN, {
+        imageURI: imageURI,
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   return (
@@ -99,10 +109,11 @@ const HomeScreen = ({navigation}) => {
       <View style={styles.cameraContainer}>
         {device && (
           <Camera
-            ref={camera}
+            ref={cameraRef}
             style={styles.camera}
             photo={true}
             device={device}
+            torch={'off'}
             isActive={true}
           />
         )}
@@ -117,7 +128,7 @@ const HomeScreen = ({navigation}) => {
       </View>
       <View style={styles.buttonGroup}>
         <TouchableOpacity onPress={handleChoosePicture}>
-          <SVG_PICTURE style={styles.scanIcon}></SVG_PICTURE>
+          <SVG_PICTURE></SVG_PICTURE>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleScan}>
           <SVG_ROUNDED_SCAN style={styles.scanIcon}></SVG_ROUNDED_SCAN>

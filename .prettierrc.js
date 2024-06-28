@@ -3,8 +3,8 @@ module.exports = {
   // bracketSameLine: true,
   // bracketSpacing: false,
   // singleQuote: true,
-  bracketSameLine: false,
-  bracketSpacing: false,
-  singleQuote: false,
+  bracketSameLine: true,
+  bracketSpacing: true,
+  singleQuote: true,
   trailingComma: 'all',
 };

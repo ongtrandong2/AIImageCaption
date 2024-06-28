@@ -5,7 +5,7 @@ export const fetchResults = createAsyncThunk(
   'prediction/fetchResults',
   async ({data, type}) => {
       const res = await predict({data, type});
-      return res;
+      return res.caption;
   },
 );
 

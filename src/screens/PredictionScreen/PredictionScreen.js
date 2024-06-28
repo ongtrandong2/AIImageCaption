@@ -45,7 +45,6 @@ const PredictionScreen = ({navigation}) => {
 
   const predictionResults = useSelector(predictionResultSelector);
   const predictionStatus = useSelector(selectStatus);
-
   const [scrollOffsetY, setScrollOffsetY] = useState(0);
   const [imageSize, setImageSize] = useState(null);
   const [verbIndex, setVerbIndex] = useState(-1);
